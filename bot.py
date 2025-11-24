@@ -184,6 +184,44 @@ async def online(interaction: discord.Interaction):
         await interaction.followup.send(
             "🔴 **Không kết nối được vào Minecraft!**\n(Có thể máy Azure đang tắt, hoặc Java đang khởi động, hãy thử lại sau 1 phút)")
 
+@bot.tree.command(name="cmd", description="Gửi lệnh Admin vào Console Server")
+@app_commands.describe(command="Lệnh cần nhập (Ví dụ: time set day)")
+async def cmd(interaction: discord.Interaction, command: str):
+    # Bảo mật: Chỉ cho phép Admin dùng (Check ID hoặc Role)
+    if interaction.user.id != ID_CUA_BAN:  # Thay ID Discord của bạn vào đây
+        await interaction.response.send_message("❌ Bạn không có quyền Admin!", ephemeral=True)
+        return
+
+    await interaction.response.defer()
+
+    # Xử lý lệnh (bỏ dấu / nếu người dùng lỡ nhập)
+    cmd_clean = command.replace("/", "")
+
+    try:
+        # Kỹ thuật Injection vào Screen:
+        # -p 0: Chọn cửa sổ đầu tiên
+        # -X stuff: Nhồi ký tự vào
+        # ^M: Giả lập phím Enter
+        shell_script = [
+            f'screen -S mc -p 0 -X stuff "{cmd_clean}^M"'
+        ]
+
+        run_command_parameters = {
+            'command_id': 'RunShellScript',
+            'script': shell_script
+        }
+
+        compute_client.virtual_machines.begin_run_command(
+            RESOURCE_GROUP,
+            VM_NAME,
+            run_command_parameters
+        )
+
+        await interaction.followup.send(f"✅ Đã gửi lệnh: `/{cmd_clean}` xuống server.")
+
+    except Exception as e:
+        await interaction.followup.send(f"❌ Lỗi: {str(e)}")
+
 # Bật Web Server giả
 keep_alive()
 
