@@ -222,6 +222,34 @@ async def cmd(interaction: discord.Interaction, command: str):
     except Exception as e:
         await interaction.followup.send(f"❌ Lỗi: {str(e)}")
 
+@bot.tree.command(name="health", description="Xem RAM và CPU của máy ảo Azure")
+async def health(interaction: discord.Interaction):
+    await interaction.response.defer()
+
+    try:
+        # Chạy lệnh Linux để lấy thông tin
+        # free -h: Xem RAM
+        # uptime: Xem tải CPU (Load average)
+        run_command_parameters = {
+            'command_id': 'RunShellScript',
+            'script': ['free -h && echo "---" && uptime']
+        }
+
+        poller = compute_client.virtual_machines.begin_run_command(
+            RESOURCE_GROUP,
+            VM_NAME,
+            run_command_parameters
+        )
+
+        # Lấy kết quả trả về từ Linux
+        result = poller.result()
+        output = result.value[0].message
+
+        await interaction.followup.send(f"📊 **Tình trạng sức khỏe VPS:**\n```\n{output}\n```")
+
+    except Exception as e:
+        await interaction.followup.send(f"❌ Máy ảo đang tắt hoặc lỗi: {str(e)}")
+
 # Bật Web Server giả
 keep_alive()
 
