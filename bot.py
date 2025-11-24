@@ -250,6 +250,55 @@ async def health(interaction: discord.Interaction):
     except Exception as e:
         await interaction.followup.send(f"❌ Máy ảo đang tắt hoặc lỗi: {str(e)}")
 
+@bot.tree.command(name="help", description="Xem danh sách lệnh và hướng dẫn sử dụng")
+async def help(interaction: discord.Interaction):
+    # Tạo một Embed (Khung thông tin)
+    embed = discord.Embed(
+        title="📘 Hướng dẫn sử dụng Bot Minecraft",
+        description="Bot quản lý Server Minecraft trên hạ tầng Azure Cloud.",
+        color=discord.Color.blue()  # Màu viền xanh dương
+    )
+
+    # Thêm các trường thông tin (Fields)
+
+    # Nhóm 1: Quản lý Nguồn (Bật/Tắt)
+    embed.add_field(
+        name="⚡ Quản lý Nguồn (Azure)",
+        value=(
+            "**/start**: Bật máy chủ Azure. (Đợi khoảng 2-3 phút để vào game)\n"
+            "**/stop**: Tắt máy chủ an toàn (Lưu map -> Tắt). Dùng khi nghỉ chơi.\n"
+            "**/status**: Kiểm tra xem máy Azure đang Bật hay Tắt."
+        ),
+        inline=False
+    )
+
+    # Nhóm 2: Thông tin Game
+    embed.add_field(
+        name="🎮 Thông tin Minecraft",
+        value=(
+            "**/online**: Xem danh sách người đang chơi, Ping và trạng thái Server Java.\n"
+            "*(Lưu ý: Chỉ hoạt động khi máy Azure đã bật)*"
+        ),
+        inline=False
+    )
+
+    # Nhóm 3: Kỹ thuật & Admin
+    embed.add_field(
+        name="🛠️ Công cụ Kỹ thuật",
+        value=(
+            "**/health**: Kiểm tra sức khỏe VPS (RAM, CPU). Dùng khi thấy game bị Lag.\n"
+            "**/cmd [lệnh]**: Gửi lệnh Admin vào Console.\n"
+            "*Ví dụ: `/cmd time set day` hoặc `/cmd kick TenNguoiChoi`*"
+        ),
+        inline=False
+    )
+
+    # Footer: Nhắc nhở quan trọng
+    embed.set_footer(text="💡 Lưu ý: Server sẽ TỰ ĐỘNG TẮT sau 10 phút nếu không có người chơi để tiết kiệm $.")
+
+    # Gửi Embed
+    await interaction.response.send_message(embed=embed)
+
 # Bật Web Server giả
 keep_alive()
 
