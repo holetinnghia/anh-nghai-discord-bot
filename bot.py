@@ -255,7 +255,7 @@ async def help(interaction: discord.Interaction):
     # Tạo một Embed (Khung thông tin)
     embed = discord.Embed(
         title="📘 Hướng dẫn sử dụng Bot Minecraft",
-        description="Bot quản lý Server Minecraft trên hạ tầng Azure Cloud.",
+        description="Bot quản lý Server Minecraft trên hạ tầng Azure Cloud. Anh Nghãi SPKT MÃI ĐỈNH! MÃI ĐỈNH!!!",
         color=discord.Color.blue()  # Màu viền xanh dương
     )
 
@@ -277,7 +277,6 @@ async def help(interaction: discord.Interaction):
         name="🎮 Thông tin Minecraft",
         value=(
             "**/online**: Xem danh sách người đang chơi, Ping và trạng thái Server Java.\n"
-            "*(Lưu ý: Chỉ hoạt động khi máy Azure đã bật)*"
         ),
         inline=False
     )
@@ -288,7 +287,6 @@ async def help(interaction: discord.Interaction):
         value=(
             "**/health**: Kiểm tra sức khỏe VPS (RAM, CPU). Dùng khi thấy game bị Lag.\n"
             "**/cmd [lệnh]**: Gửi lệnh Admin vào Console.\n"
-            "*Ví dụ: `/cmd time set day` hoặc `/cmd kick TenNguoiChoi`*"
         ),
         inline=False
     )
