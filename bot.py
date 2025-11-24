@@ -184,8 +184,8 @@ async def online(interaction: discord.Interaction):
         await interaction.followup.send(
             "🔴 **Không kết nối được vào Minecraft!**\n(Có thể máy Azure đang tắt, hoặc Java đang khởi động, hãy thử lại sau 1 phút)")
 
-@bot.tree.command(name="cmd", description="Gửi lệnh Admin vào Console Server")
-@app_commands.describe(command="Lệnh cần nhập (Ví dụ: time set day)")
+@bot.tree.command(name="cmd", description="Gửi lệnh Admin vào Console Server (Ví dụ: time set day)")
+@app_commands.describe(command="Nhập lệnh Minecraft (không cần dấu /)")
 async def cmd(interaction: discord.Interaction, command: str):
     # Bảo mật: Chỉ cho phép Admin dùng (Check ID hoặc Role)
     if interaction.user.id != 458620943015608320:  # Thay ID Discord của bạn vào đây
@@ -203,7 +203,7 @@ async def cmd(interaction: discord.Interaction, command: str):
         # -X stuff: Nhồi ký tự vào
         # ^M: Giả lập phím Enter
         shell_script = [
-            f'screen -S mc -p 0 -X stuff "{cmd_clean}^M"'
+            f"sudo -u holetinnghia screen -S mc -p 0 -X stuff '{cmd_clean}\r'"
         ]
 
         run_command_parameters = {
@@ -217,7 +217,7 @@ async def cmd(interaction: discord.Interaction, command: str):
             run_command_parameters
         )
 
-        await interaction.followup.send(f"✅ Đã gửi lệnh: `/{cmd_clean}` xuống server.")
+        await interaction.followup.send(f"✅ Đã gửi lệnh: `/{cmd_clean}`")
 
     except Exception as e:
         await interaction.followup.send(f"❌ Lỗi: {str(e)}")
