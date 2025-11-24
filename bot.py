@@ -41,12 +41,12 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f'Bot đã đăng nhập thành công: {bot.user}')
+    print(f'Đăng nhập thành công: {bot.user}')
 
 
-@bot.command()
+@bot.command(aliases=['on', 'start'])
 async def batserver(ctx):
-    await ctx.send("🤖 Đang kiểm tra trạng thái server...")
+    await ctx.send("> Đang kiểm tra trạng thái server...")
 
     # 1. Kiểm tra trạng thái ban đầu
     vm = compute_client.virtual_machines.instance_view(RESOURCE_GROUP, VM_NAME)
@@ -57,11 +57,11 @@ async def batserver(ctx):
             break
 
     if "running" in status.lower():
-        await ctx.send(f"✅ Server đang chạy rồi! IP: 20.210.194.120")
+        await ctx.send(f"> Server đang chạy rồi! IP: `20.210.194.120`")
         return  # Thoát luôn nếu máy đang chạy
 
     # 2. Nếu máy chưa chạy -> Gửi lệnh bật
-    status_msg = await ctx.send("🚀 Đã gửi lệnh BẬT Azure. Đang chờ máy khởi động... (Sẽ tự báo khi xong)")
+    status_msg = await ctx.send("> Đã gửi lệnh BẬT Azure. Đang chờ máy khởi động... (Sẽ tự báo khi xong)")
     compute_client.virtual_machines.begin_start(RESOURCE_GROUP, VM_NAME)
 
     # 3. Vòng lặp chờ (Polling) - Kiểm tra mỗi 10 giây
@@ -78,25 +78,39 @@ async def batserver(ctx):
                 break
 
         # Cập nhật tin nhắn cho người dùng đỡ sốt ruột
-        await status_msg.edit(content=f"⏳ Đang khởi động... ({current_status}) - Lần kiểm tra thứ {i + 1}/20")
+        await status_msg.edit(content=f"> Đang khởi động... ({current_status}) - Lần kiểm tra thứ {i + 1}/20")
 
         if "running" in current_status.lower():
-            await ctx.send("🎉 **SERVER ĐÃ ONLINE!** (Máy Azure đã bật)")
+            await ctx.send("> **SERVER ĐÃ ONLINE!** (Máy Azure đã bật)")
             await ctx.send(
-                "💡 Lưu ý: Đợi thêm khoảng 30s-1 phút để Minecraft Server load xong map nhé. IP: `20.210.194.120`")
+                "> Đợi thêm khoảng 30s-1 phút để Minecraft Server load xong map. IP: `20.210.194.120`")
             return
 
-    await ctx.send("⚠️ Có vẻ khởi động hơi lâu, bạn hãy tự kiểm tra lại sau nhé.")
+    await ctx.send("> ⚠️ Có vẻ khởi động hơi lâu, bạn hãy tự kiểm tra lại sau nhé.")
 
 
-@bot.command()
+@bot.command(aliases=['off', 'stop', 'shutdown'])
 async def tatserver(ctx):
-    await ctx.send("🛑 Đang gửi lệnh TẮT máy (Deallocate)...")
-    try:
-        compute_client.virtual_machines.begin_deallocate(RESOURCE_GROUP, VM_NAME)
-        await ctx.send("zzZ Server đang đi ngủ... Hẹn gặp lại!")
-    except Exception as e:
-        await ctx.send(f"❌ Lỗi khi tắt: {str(e)}")
+    await ctx.send("> Đang gửi tín hiệu tắt an toàn vào máy chủ...")
+
+    # Lệnh này tương đương với việc bạn SSH vào và gõ lệnh
+    run_command_parameters = {
+        'command_id': 'RunShellScript',
+        'script': [
+            # Chạy file script tự sát của bạn ngay lập tức
+            'chmod +x /home/holetinnghia/autoshutdown.sh',
+            'nohup /home/holetinnghia/autoshutdown.sh > /dev/null 2>&1 &'
+        ]
+    }
+
+    # Gửi lệnh vào máy ảo
+    poller = compute_client.virtual_machines.begin_run_command(
+        RESOURCE_GROUP,
+        VM_NAME,
+        run_command_parameters
+    )
+
+    await ctx.send("> Đã kích hoạt quy trình tự hủy! Server sẽ lưu map và tắt sau khoảng 1 phút nữa.")
 
 
 # Bật Web Server giả trước khi chạy bot
