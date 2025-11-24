@@ -188,7 +188,7 @@ async def online(interaction: discord.Interaction):
 @app_commands.describe(command="Lệnh cần nhập (Ví dụ: time set day)")
 async def cmd(interaction: discord.Interaction, command: str):
     # Bảo mật: Chỉ cho phép Admin dùng (Check ID hoặc Role)
-    if interaction.user.id != ID_CUA_BAN:  # Thay ID Discord của bạn vào đây
+    if interaction.user.id != holetinnghia:  # Thay ID Discord của bạn vào đây
         await interaction.response.send_message("❌ Bạn không có quyền Admin!", ephemeral=True)
         return
 
