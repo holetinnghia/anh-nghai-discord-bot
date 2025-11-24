@@ -134,8 +134,9 @@ async def stop(interaction: discord.Interaction):
         run_command_parameters = {
             'command_id': 'RunShellScript',
             'script': [
-                'chmod +x /home/holetinnghia/autoshutdown.sh',
-                'nohup /home/holetinnghia/autoshutdown.sh > /dev/null 2>&1 &'
+                # Sửa dòng này trỏ đến file manual_stop.sh
+                'chmod +x /home/holetinnghia/manual_stop.sh',
+                'nohup /home/holetinnghia/manual_stop.sh > /dev/null 2>&1 &'
             ]
         }
 
