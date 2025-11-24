@@ -2,3 +2,4 @@ discord.py
 azure-identity
 azure-mgmt-compute
 flask
+mcstatus

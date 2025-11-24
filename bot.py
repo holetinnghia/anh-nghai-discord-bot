@@ -6,6 +6,7 @@ from discord.ext import commands
 from azure.identity import ClientSecretCredential
 from azure.mgmt.compute import ComputeManagementClient
 from keep_alive import keep_alive
+from mcstatus import JavaServer
 
 # --- CẤU HÌNH BIẾN MÔI TRƯỜNG ---
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
@@ -152,6 +153,36 @@ async def stop(interaction: discord.Interaction):
     except Exception as e:
         await interaction.followup.send(f"❌ Lỗi khi gửi lệnh tắt: {str(e)}")
 
+@bot.tree.command(name="online", description="Xem ai đang chơi trong server")
+async def online(interaction: discord.Interaction):
+    await interaction.response.defer()
+
+    server_ip = "20.210.194.120"  # IP Server của bạn
+
+    try:
+        # Ping thử vào cổng game
+        server = JavaServer.lookup(server_ip)
+        status = server.status()
+
+        # Lấy danh sách người chơi
+        player_count = status.players.online
+        latency = round(status.latency)
+
+        msg = f"🟢 **Server Online** (Ping: {latency}ms)\n"
+        msg += f"👥 **Người chơi ({player_count}/{status.players.max}):**\n"
+
+        if status.players.sample:
+            for p in status.players.sample:
+                msg += f"- `{p.name}`\n"
+        else:
+            msg += "_(Không có ai)_"
+
+        await interaction.followup.send(msg)
+
+    except Exception:
+        # Nếu lỗi nghĩa là Server Java chưa bật hoặc đang khởi động
+        await interaction.followup.send(
+            "🔴 **Không kết nối được vào Minecraft!**\n(Có thể máy Azure đang tắt, hoặc Java đang khởi động, hãy thử lại sau 1 phút)")
 
 # Bật Web Server giả
 keep_alive()
