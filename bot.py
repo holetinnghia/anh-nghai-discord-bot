@@ -175,6 +175,44 @@ async def stop(interaction: discord.Interaction):
     except Exception as e:
         await interaction.followup.send(f"❌ Lỗi khi gửi lệnh tắt: {str(e)}")
 
+# --- LỆNH 4: RESTART (KHỞI ĐỘNG LẠI GAME) ---
+@bot.tree.command(name="restart", description="Khởi động lại Java Server (Không tắt máy Azure)")
+async def restart(interaction: discord.Interaction):
+    await interaction.response.defer()
+
+    status = get_vm_status()
+    if "running" not in status.lower():
+        await interaction.followup.send("❌ Máy Azure đang tắt, không thể restart. Hãy dùng `/start`.")
+        return
+
+    await interaction.followup.send(
+        "🔄 **Đang khởi động lại Server Minecraft...**\n(Map sẽ được lưu, vui lòng đợi khoảng 30-60 giây)")
+
+    try:
+        # Script combo: Stop -> Wait -> Start
+        restart_script = [
+            'screen -S mc -p 0 -X stuff "stop^M"',
+            'sleep 20',
+            '/home/holetinnghia/minecraft/start.sh'
+        ]
+
+        run_command_parameters = {
+            'command_id': 'RunShellScript',
+            'script': restart_script
+        }
+
+        compute_client.virtual_machines.begin_run_command(
+            RESOURCE_GROUP,
+            VM_NAME,
+            run_command_parameters
+        )
+
+        await interaction.followup.send(
+            "✅ **Đã gửi lệnh Restart!**\nHãy thử ping `/status` hoặc `/online` sau 1 phút nữa.")
+
+    except Exception as e:
+        await interaction.followup.send(f"❌ Lỗi: {str(e)}")
+
 @bot.tree.command(name="online", description="Xem ai đang chơi trong server")
 async def online(interaction: discord.Interaction):
     await interaction.response.defer()
