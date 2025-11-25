@@ -7,6 +7,8 @@ from azure.identity import ClientSecretCredential
 from azure.mgmt.compute import ComputeManagementClient
 from keep_alive import keep_alive
 from mcstatus import JavaServer
+import requests
+import asyncio
 
 # --- CẤU HÌNH BIẾN MÔI TRƯỜNG ---
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
@@ -47,12 +49,23 @@ class MyBot(commands.Bot):
 
 bot = MyBot()
 
+# Thêm hàm này vào bot.py và gọi nó trong on_ready
+async def auto_ping():
+    url = "https://discord-minecraftserver.onrender.com"
+    while True:
+        try:
+            print("💪 Tự ping để chống ngủ gật...")
+            requests.get(url)
+        except:
+            pass
+        await asyncio.sleep(300) # Ping mỗi 10 phút
 
 @bot.event
 async def on_ready():
     print(f'🤖 Đăng nhập thành công: {bot.user}')
     # Đổi trạng thái hiển thị
     await bot.change_presence(activity=discord.Game(name="/start để chơi"))
+    bot.loop.create_task(auto_ping())
 
 
 # --- HÀM PHỤ TRỢ: LẤY TRẠNG THÁI ---
