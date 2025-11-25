@@ -7,8 +7,7 @@ from azure.identity import ClientSecretCredential
 from azure.mgmt.compute import ComputeManagementClient
 from keep_alive import keep_alive
 from mcstatus import JavaServer
-import requests
-import asyncio
+import aiohttp
 
 # --- CẤU HÌNH BIẾN MÔI TRƯỜNG ---
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
@@ -46,26 +45,36 @@ class MyBot(commands.Bot):
         await self.tree.sync()
         print("✅ Đã đồng bộ Slash Commands (/start, /stop, /status) thành công!")
 
-
-bot = MyBot()
-
-# Thêm hàm này vào bot.py và gọi nó trong on_ready
-async def auto_ping():
+# --- HÀM TỰ PING ĐỂ CHỐNG NGỦ ---
+async def self_ping():
+    # THAY LINK RENDER CỦA BẠN VÀO DƯỚI ĐÂY:
     url = "https://discord-minecraftserver.onrender.com"
+
+    print(f"🔄 Đã kích hoạt chế độ tự ping mỗi 10 phút vào: {url}")
+
     while True:
         try:
-            print("💪 Tự ping để chống ngủ gật...")
-            requests.get(url)
-        except:
-            pass
-        await asyncio.sleep(300) # Ping mỗi 10 phút
+            await asyncio.sleep(300)
+
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as resp:
+                    if resp.status == 200:
+                        print("✅ Tự ping thành công (Bot vẫn sống)")
+                    else:
+                        print(f"⚠️ Tự ping thất bại: {resp.status}")
+        except Exception as e:
+            print(f"❌ Lỗi tự ping: {e}")
+            # Nếu lỗi thì chờ 1 phút rồi thử lại, tránh spam lỗi
+            await asyncio.sleep(60)
+
+bot = MyBot()
 
 @bot.event
 async def on_ready():
     print(f'🤖 Đăng nhập thành công: {bot.user}')
     # Đổi trạng thái hiển thị
     await bot.change_presence(activity=discord.Game(name="/start để chơi"))
-    bot.loop.create_task(auto_ping())
+    bot.loop.create_task(self_ping())
 
 
 # --- HÀM PHỤ TRỢ: LẤY TRẠNG THÁI ---
