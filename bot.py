@@ -1,13 +1,16 @@
-import discord
+from dotenv import load_dotenv
+load_dotenv() # Tải các biến môi trường từ file .env
+
 import os
 import asyncio
-from discord import app_commands
-from discord.ext import commands
 from azure.identity import ClientSecretCredential
 from azure.mgmt.compute import ComputeManagementClient
 from keep_alive import keep_alive
 from mcstatus import JavaServer
-import aiohttp
+import discord
+from discord import app_commands
+from discord.ext import commands
+from riotwatcher import LolWatcher, RiotWatcher, ApiError
 
 # --- CẤU HÌNH BIẾN MÔI TRƯỜNG ---
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
@@ -15,14 +18,15 @@ AZURE_SUBSCRIPTION_ID = os.getenv('AZURE_SUBSCRIPTION_ID')
 AZURE_CLIENT_ID = os.getenv('AZURE_CLIENT_ID')
 AZURE_CLIENT_SECRET = os.getenv('AZURE_CLIENT_SECRET')
 AZURE_TENANT_ID = os.getenv('AZURE_TENANT_ID')
+RIOT_API_KEY = os.getenv('RIOT_API_KEY')
 
 RESOURCE_GROUP = 'MinecraftServer_group'
 VM_NAME = 'MinecraftServer'
 # -------------------------------------------------
 
 # Kiểm tra biến môi trường
-if not all([DISCORD_TOKEN, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET]):
-    print("LỖI: Thiếu biến môi trường! Hãy kiểm tra lại cài đặt trên Render.")
+if not all([DISCORD_TOKEN, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, RIOT_API_KEY]):
+    print("LỖI: Thiếu biến môi trường! Hãy kiểm tra lại cài đặt trên Render hoặc file .env.")
     exit()
 
 # Kết nối Azure
@@ -310,52 +314,113 @@ async def health(interaction: discord.Interaction):
     except Exception as e:
         await interaction.followup.send(f"❌ Máy ảo đang tắt hoặc lỗi: {str(e)}")
 
-@bot.tree.command(name="help", description="Xem danh sách lệnh và hướng dẫn sử dụng")
-async def help(interaction: discord.Interaction):
-    # Tạo một Embed (Khung thông tin)
-    embed = discord.Embed(
-        title="📘 Hướng dẫn sử dụng Bot Minecraft",
-        description="Bot quản lý Server Minecraft trên hạ tầng Azure Cloud. Anh Nghãi SPKT MÃI ĐỈNH! MÃI ĐỈNH!!!",
-        color=discord.Color.blue()  # Màu viền xanh dương
-    )
 
-    # Thêm các trường thông tin (Fields)
 
-    # Nhóm 1: Quản lý Nguồn (Bật/Tắt)
-    embed.add_field(
-        name="⚡ Quản lý Nguồn (Azure)",
-        value=(
-            "**/start**: Bật máy chủ Azure. (Đợi khoảng 2-3 phút để vào game)\n"
-            "**/stop**: Tắt máy chủ an toàn (Lưu map -> Tắt). Dùng khi nghỉ chơi.\n"
-            "**/status**: Kiểm tra xem máy Azure đang Bật hay Tắt."
-        ),
-        inline=False
-    )
 
-    # Nhóm 2: Thông tin Game
-    embed.add_field(
-        name="🎮 Thông tin Minecraft",
-        value=(
-            "**/online**: Xem danh sách người đang chơi, Ping và trạng thái Server Java.\n"
-        ),
-        inline=False
-    )
 
-    # Nhóm 3: Kỹ thuật & Admin
-    embed.add_field(
-        name="🛠️ Công cụ Kỹ thuật",
-        value=(
-            "**/health**: Kiểm tra sức khỏe VPS (RAM, CPU). Dùng khi thấy game bị Lag.\n"
-            "**/cmd [lệnh]**: Gửi lệnh Admin vào Console.\n"
-        ),
-        inline=False
-    )
+# CẤU HÌNH
+REGION = 'vn2'  # Server Việt Nam hiện tại là vn2
 
-    # Footer: Nhắc nhở quan trọng
-    embed.set_footer(text="💡 Lưu ý: Server sẽ TỰ ĐỘNG TẮT sau 10 phút nếu không có người chơi để tiết kiệm $.")
+lol_watcher = LolWatcher(RIOT_API_KEY)
+riot_watcher = RiotWatcher(RIOT_API_KEY)
 
-    # Gửi Embed
-    await interaction.response.send_message(embed=embed)
+# (Giữ nguyên phần khởi tạo bot của ông)
+
+@bot.tree.command(name="lolprofile", description="Xem rank LoL")
+@app_commands.describe(riot_id="Nhập dạng Tên#Tag (VD: SofM#VN2)")
+async def lolprofile(interaction: discord.Interaction, riot_id: str):
+    await interaction.response.defer()
+
+    try:
+        if "#" not in riot_id:
+            await interaction.followup.send("❌ Nhập sai rồi bro! Phải có dấu # (VD: Yasuo#VN2)")
+            return
+
+        game_name, tag_line = riot_id.split("#")
+
+        # 1. Lấy PUUID
+        account_data = riot_watcher.account.by_riot_id('asia', game_name, tag_line)
+        puuid = account_data['puuid']
+
+        # 2. Lấy Summoner Info
+        summoner_data = lol_watcher.summoner.by_puuid(REGION, puuid)
+        encrypted_summoner_id = summoner_data.get('id')
+
+        # Biến để lưu info trận cuối (nếu có)
+        last_match_info = "Không có dữ liệu"
+
+        # --- XỬ LÝ ZOMBIE ACCOUNT ---
+        if not encrypted_summoner_id:
+            print(f"⚠️ Account Zombie: {riot_id}. Đang đi đường vòng...")
+            try:
+                MATCH_ROUTING = 'sea'
+                matches = lol_watcher.match.matchlist_by_puuid(MATCH_ROUTING, puuid, count=1)
+
+                if matches:
+                    last_match = lol_watcher.match.by_id(MATCH_ROUTING, matches[0])
+                    # Lấy ID từ trận đấu
+                    for p in last_match['info']['participants']:
+                        if p['puuid'] == puuid:
+                            encrypted_summoner_id = p['summonerId']
+                            # Tiện tay lấy luôn thông tin trận vừa đánh
+                            champ = p['championName']
+                            kda = f"{p['kills']}/{p['deaths']}/{p['assists']}"
+                            win = "Thắng" if p['win'] else "Thua"
+                            last_match_info = f"**{champ}** ({win})\nKDA: {kda}"
+                            break
+                else:
+                    await interaction.followup.send("❌ Acc lỗi ID và chưa đánh trận nào. Bó tay.")
+                    return
+            except Exception as e:
+                print(f"Lỗi đường vòng: {e}")
+                await interaction.followup.send("❌ Lỗi dữ liệu nghiêm trọng từ Riot.")
+                return
+        # ----------------------------
+
+        # 3. Lấy Rank (Bọc trong Try-Except riêng để không chết bot)
+        rank_display = "Chưa phân hạng (Unranked)"
+        try:
+            if encrypted_summoner_id:
+                rank_data = lol_watcher.league.by_summoner(REGION, encrypted_summoner_id)
+                for queue in rank_data:
+                    if queue['queueType'] == 'RANKED_SOLO_5x5':
+                        tier = queue['tier']
+                        rank = queue['rank']
+                        lp = queue['leaguePoints']
+                        winrate = round((queue['wins'] / (queue['wins'] + queue['losses'])) * 100, 1)
+                        rank_display = f"**{tier} {rank}** - {lp} LP\nWR: {winrate}%"
+                        break
+        except ApiError as err:
+            if err.response.status_code == 403:
+                rank_display = "⚠️ **Lỗi Riot (403)**\nAcc này bị Riot chặn xem Rank."
+                print(f"Lỗi 403 Rank: {err}")
+            else:
+                rank_display = "⚠️ Lỗi API Rank"
+
+        # 4. Hiển thị
+        embed = discord.Embed(title=f"Hồ sơ: {riot_id}", color=0x00ff00)
+        icon_id = summoner_data.get('profileIconId', 29)
+        embed.set_thumbnail(url=f"http://ddragon.leagueoflegends.com/cdn/14.23.1/img/profileicon/{icon_id}.png")
+
+        embed.add_field(name="Cấp độ", value=summoner_data.get('summonerLevel', 'N/A'), inline=True)
+        embed.add_field(name="Rank Đơn/Đôi", value=rank_display, inline=False)
+
+        # Thêm dòng này để vớt vát danh dự cho cái acc lỗi
+        if last_match_info != "Không có dữ liệu":
+            embed.add_field(name="Trận gần nhất", value=last_match_info, inline=False)
+
+        await interaction.followup.send(embed=embed)
+
+    except ApiError as err:
+        if err.response.status_code == 404:
+            await interaction.followup.send(f"❌ Không tìm thấy user **{riot_id}**.")
+        elif err.response.status_code == 403:
+            await interaction.followup.send("⚠️ API Key hết hạn rồi bro.")
+        else:
+            await interaction.followup.send(f"⚠️ Lỗi API Tổng: {err.response.status_code}")
+    except Exception as e:
+        print(f"Lỗi lạ: {e}")
+        await interaction.followup.send(f"⚠️ Toang: {str(e)}")
 
 # Bật Web Server giả
 keep_alive()

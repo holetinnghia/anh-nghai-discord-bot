@@ -4,3 +4,5 @@ azure-mgmt-compute
 flask
 mcstatus
 aiohttp
+riotwatcher
+python-dotenv
