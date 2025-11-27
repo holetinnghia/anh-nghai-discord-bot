@@ -48,7 +48,7 @@ class MyBot(commands.Bot):
 # --- HÀM TỰ PING ĐỂ CHỐNG NGỦ ---
 async def self_ping():
     # THAY LINK RENDER CỦA BẠN VÀO DƯỚI ĐÂY:
-    url = "https://discord-minecraftserver.onrender.com"
+    url = "https://discord-minecraft.onrender.com"
 
     print(f"🔄 Đã kích hoạt chế độ tự ping mỗi 10 phút vào: {url}")
 
