@@ -7,3 +7,4 @@ mcstatus
 aiohttp
 riotwatcher
 python-dotenv
+Flask
