@@ -1,7 +1,8 @@
 discord.py
 azure-identity
 azure-mgmt-compute
-flask
+discord.py
+python-dotenv
 mcstatus
 aiohttp
 riotwatcher
