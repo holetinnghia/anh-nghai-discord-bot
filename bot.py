@@ -283,7 +283,7 @@ class LOLCog(commands.Cog):
 
 # --- HÀM TỰ PING ĐỂ CHỐNG NGỦ ---
 async def self_ping():
-    url = "https://anh-nghaispkt.onrender.com"
+    url = "https://anh-nghai-bot.onrender.com"
     logging.info(f"Đã kích hoạt chế độ tự ping mỗi 5 phút vào: {url}")
     while True:
         await asyncio.sleep(300)
