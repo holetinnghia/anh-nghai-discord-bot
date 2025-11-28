@@ -47,14 +47,14 @@ class MyBot(commands.Bot):
 
     async def setup_hook(self):
         await self.tree.sync()
-        print("✅ Đã đồng bộ Slash Commands (/start, /stop, /status) thành công!")
+        print("Đã đồng bộ.")
 
 # --- HÀM TỰ PING ĐỂ CHỐNG NGỦ ---
 async def self_ping():
     # THAY LINK RENDER CỦA BẠN VÀO DƯỚI ĐÂY:
     url = "https://anh-nghaispkt.onrender.com"
 
-    print(f"🔄 Đã kích hoạt chế độ tự ping mỗi 10 phút vào: {url}")
+    print(f"Đã kích hoạt chế độ tự ping mỗi 10 phút vào: {url}")
 
     while True:
         try:
@@ -63,7 +63,7 @@ async def self_ping():
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as resp:
                     if resp.status == 200:
-                        print("✅ Tự ping thành công (Bot vẫn sống)")
+                        print("Tự ping thành công (Bot vẫn sống)")
                     else:
                         print(f"⚠️ Tự ping thất bại: {resp.status}")
         except Exception as e:
@@ -75,9 +75,9 @@ bot = MyBot()
 
 @bot.event
 async def on_ready():
-    print(f'🤖 Đăng nhập thành công: {bot.user}')
+    print(f'Đăng nhập thành công: {bot.user}')
     # Đổi trạng thái hiển thị
-    await bot.change_presence(activity=discord.Game(name="/start để chơi"))
+    await bot.change_presence(activity=discord.Game(name="ước gì t bớtđẳng cấp 1 chuuts"))
     bot.loop.create_task(self_ping())
 
 
@@ -94,33 +94,62 @@ def get_vm_status():
         return f"Error: {str(e)}"
 
 
-# --- LỆNH 1: STATUS (KIỂM TRA TRẠNG THÁI) ---
-@bot.tree.command(name="status", description="Kiểm tra xem Server đang Bật hay Tắt")
+@bot.tree.command(name="azure status", description="Kiểm tra xem máy ảo Azure đang Bật hay Tắt")
 async def status(interaction: discord.Interaction):
     await interaction.response.defer()  # Hoãn trả lời để chờ Azure
 
     current_status = get_vm_status()
 
     if "running" in current_status.lower():
-        await interaction.followup.send(f"✅ **Server đang hoạt động!** ({current_status})\nIP: `20.210.194.120`")
+        await interaction.followup.send(f"**Server đang hoạt động!** ({current_status})\nIP: `20.210.194.120`")
     elif "deallocated" in current_status.lower() or "stopped" in current_status.lower():
-        await interaction.followup.send(f"zzz **Server đang tắt** ({current_status}).\nDùng lệnh `/start` để bật.")
+        await interaction.followup.send(f"**Server đang tắt** ({current_status}).\nDùng lệnh `/azure start` để bật.")
     else:
         await interaction.followup.send(f"⚠️ **Trạng thái:** {current_status}")
 
 
-# --- LỆNH 2: START (BẬT SERVER) ---
-@bot.tree.command(name="start", description="Khởi động Server Minecraft Azure")
+
+@bot.tree.command(name="azure health", description="Xem RAM và CPU của máy ảo Azure")
+async def health(interaction: discord.Interaction):
+    await interaction.response.defer()
+
+    try:
+        # Chạy lệnh Linux để lấy thông tin
+        # free -h: Xem RAM
+        # uptime: Xem tải CPU (Load average)
+        run_command_parameters = {
+            'command_id': 'RunShellScript',
+            'script': ['free -h && echo "---" && uptime']
+        }
+
+        poller = compute_client.virtual_machines.begin_run_command(
+            RESOURCE_GROUP,
+            VM_NAME,
+            run_command_parameters
+        )
+
+        # Lấy kết quả trả về từ Linux
+        result = poller.result()
+        output = result.value[0].message
+
+        await interaction.followup.send(f"**Tình trạng sức khỏe VPS:**\n```\n{output}\n```")
+
+    except Exception as e:
+        await interaction.followup.send(f"❌ Máy ảo đang tắt hoặc lỗi: {str(e)}")
+
+
+
+@bot.tree.command(name="azure start", description="Khởi động Server Minecraft Azure")
 async def start(interaction: discord.Interaction):
     await interaction.response.defer()
 
     status = get_vm_status()
 
     if "running" in status.lower():
-        await interaction.followup.send(f"✅ **Server đang chạy rồi!**\nIP: `20.210.194.120`")
+        await interaction.followup.send(f"**Server đang chạy rồi!**\nIP: `20.210.194.120`")
         return
 
-    msg = await interaction.followup.send(f"🚀 **Đang kích hoạt máy ảo Azure...**\n(Trạng thái hiện tại: {status})")
+    msg = await interaction.followup.send(f"**Đang kích hoạt máy ảo Azure...**\n(Trạng thái hiện tại: {status})")
 
     try:
         compute_client.virtual_machines.begin_start(RESOURCE_GROUP, VM_NAME)
@@ -130,31 +159,31 @@ async def start(interaction: discord.Interaction):
             await asyncio.sleep(10)
             current_status = get_vm_status()
 
-            await msg.edit(content=f"⏳ Đang khởi động... ({current_status}) - {i * 10}s")
+            await msg.edit(content=f"Đang khởi động... ({current_status}) - {i * 10}s")
 
             if "running" in current_status.lower():
                 await interaction.followup.send(
-                    "🎉 **SERVER ĐÃ ONLINE!**\n💡 Đợi thêm 30s để Minecraft load map.\nIP: `20.210.194.120`")
+                    "**SERVER ĐÃ ONLINE!**\nĐợi thêm 30s để Minecraft load map.\nIP: `20.210.194.120`")
                 return
 
-        await interaction.followup.send("⚠️ Server khởi động lâu hơn dự kiến. Hãy dùng `/status` để kiểm tra lại sau.")
+        await interaction.followup.send("⚠️ Server khởi động lâu hơn dự kiến. Hãy dùng `/azure status` để kiểm tra lại sau.")
 
     except Exception as e:
         await interaction.followup.send(f"❌ Lỗi khi bật: {str(e)}")
 
 
-# --- LỆNH 3: STOP (TẮT AN TOÀN) ---
-@bot.tree.command(name="stop", description="Tắt Server an toàn (Lưu map -> Tắt máy)")
+
+@bot.tree.command(name="azure stop", description="Tắt Server an toàn (Lưu map -> Tắt máy)")
 async def stop(interaction: discord.Interaction):
     await interaction.response.defer()
 
     status = get_vm_status()
 
     if "running" not in status.lower():
-        await interaction.followup.send(f"zzz **Server đang tắt rồi** ({status}). Không cần tắt nữa!")
+        await interaction.followup.send(f"**Server đang tắt rồi** ({status}). Không cần tắt nữa!")
         return
 
-    await interaction.followup.send("🛑 **Đang gửi tín hiệu tắt an toàn...**")
+    await interaction.followup.send("**Đang gửi tín hiệu tắt an toàn...**")
 
     try:
         # Chạy script tự hủy bên trong Linux
@@ -174,23 +203,24 @@ async def stop(interaction: discord.Interaction):
         )
 
         await interaction.followup.send(
-            "✅ **Đã kích hoạt quy trình tự hủy!**\nServer sẽ lưu map và tắt hẳn sau khoảng 1 phút nữa.")
+            "**Đã kích hoạt quy trình tự hủy!**\nServer sẽ lưu map và tắt hẳn sau khoảng 1 phút nữa.")
 
     except Exception as e:
         await interaction.followup.send(f"❌ Lỗi khi gửi lệnh tắt: {str(e)}")
 
-# --- LỆNH 4: RESTART (KHỞI ĐỘNG LẠI GAME) ---
-@bot.tree.command(name="restart", description="Khởi động lại Java Server (Không tắt máy Azure)")
+
+
+@bot.tree.command(name="mc restart", description="Khởi động lại Java Server (Không tắt máy Azure)")
 async def restart(interaction: discord.Interaction):
     await interaction.response.defer()
 
     status = get_vm_status()
     if "running" not in status.lower():
-        await interaction.followup.send("❌ Máy Azure đang tắt, không thể restart. Hãy dùng `/start`.")
+        await interaction.followup.send("Máy Azure đang tắt, không thể restart.")
         return
 
     await interaction.followup.send(
-        "🔄 **Đang khởi động lại Server Minecraft...**\n(Map sẽ được lưu, vui lòng đợi khoảng 30-60 giây)")
+        "**Đang khởi động lại Server Minecraft...**\n(Map sẽ được lưu, vui lòng đợi khoảng 30-60 giây)")
 
     try:
         # Script combo: Stop -> Wait -> Start
@@ -212,12 +242,14 @@ async def restart(interaction: discord.Interaction):
         )
 
         await interaction.followup.send(
-            "✅ **Đã gửi lệnh Restart!**\nHãy thử ping `/status` hoặc `/online` sau 1 phút nữa.")
+            "**Đã gửi lệnh Restart!**\nHãy thử lại sau 1 phút nữa.")
 
     except Exception as e:
         await interaction.followup.send(f"❌ Lỗi: {str(e)}")
 
-@bot.tree.command(name="online", description="Xem ai đang chơi trong server")
+
+
+@bot.tree.command(name="mc online", description="Xem ai đang chơi trong Server Minecraft")
 async def online(interaction: discord.Interaction):
     await interaction.response.defer()
 
@@ -232,8 +264,8 @@ async def online(interaction: discord.Interaction):
         player_count = status.players.online
         latency = round(status.latency)
 
-        msg = f"🟢 **Server Online** (Ping: {latency}ms)\n"
-        msg += f"👥 **Người chơi ({player_count}/{status.players.max}):**\n"
+        msg = f"**Server Online** (Ping: {latency}ms)\n"
+        msg += f"**Người chơi ({player_count}/{status.players.max}):**\n"
 
         if status.players.sample:
             for p in status.players.sample:
@@ -248,7 +280,9 @@ async def online(interaction: discord.Interaction):
         await interaction.followup.send(
             "🔴 **Không kết nối được vào Minecraft!**\n(Có thể máy Azure đang tắt, hoặc Java đang khởi động, hãy thử lại sau 1 phút)")
 
-@bot.tree.command(name="cmd", description="Gửi lệnh Admin vào Console Server (Ví dụ: time set day)")
+
+
+@bot.tree.command(name="mc console", description="Gửi lệnh Admin vào Console Server")
 @app_commands.describe(command="Nhập lệnh Minecraft (không cần dấu /)")
 async def cmd(interaction: discord.Interaction, command: str):
     # Bảo mật: Chỉ cho phép Admin dùng (Check ID hoặc Role)
@@ -281,40 +315,10 @@ async def cmd(interaction: discord.Interaction, command: str):
             run_command_parameters
         )
 
-        await interaction.followup.send(f"✅ Đã gửi lệnh: `/{cmd_clean}`")
+        await interaction.followup.send(f"Đã gửi lệnh: `/{cmd_clean}`")
 
     except Exception as e:
         await interaction.followup.send(f"❌ Lỗi: {str(e)}")
-
-@bot.tree.command(name="health", description="Xem RAM và CPU của máy ảo Azure")
-async def health(interaction: discord.Interaction):
-    await interaction.response.defer()
-
-    try:
-        # Chạy lệnh Linux để lấy thông tin
-        # free -h: Xem RAM
-        # uptime: Xem tải CPU (Load average)
-        run_command_parameters = {
-            'command_id': 'RunShellScript',
-            'script': ['free -h && echo "---" && uptime']
-        }
-
-        poller = compute_client.virtual_machines.begin_run_command(
-            RESOURCE_GROUP,
-            VM_NAME,
-            run_command_parameters
-        )
-
-        # Lấy kết quả trả về từ Linux
-        result = poller.result()
-        output = result.value[0].message
-
-        await interaction.followup.send(f"📊 **Tình trạng sức khỏe VPS:**\n```\n{output}\n```")
-
-    except Exception as e:
-        await interaction.followup.send(f"❌ Máy ảo đang tắt hoặc lỗi: {str(e)}")
-
-
 
 
 
@@ -326,7 +330,7 @@ riot_watcher = RiotWatcher(RIOT_API_KEY)
 
 # (Giữ nguyên phần khởi tạo bot của ông)
 
-@bot.tree.command(name="lolprofile", description="Xem rank LoL")
+@bot.tree.command(name="lol profile", description="Xem rank LoL")
 @app_commands.describe(riot_id="Nhập dạng Tên#Tag (VD: SofM#VN2)")
 async def lolprofile(interaction: discord.Interaction, riot_id: str):
     await interaction.response.defer()
