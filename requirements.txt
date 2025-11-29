@@ -8,3 +8,4 @@ aiohttp
 riotwatcher
 python-dotenv
 Flask
+requests

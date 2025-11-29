@@ -320,6 +320,33 @@ async def on_ready():
     await bot.change_presence(activity=discord.Game(name="ước gì t bớt đẳng cấp 1 chuuts"))
     bot.loop.create_task(self_ping())
 
+
+# Đầu file bot.py, import hàm từ file mới
+from ai_service import get_ai_response
+
+
+# (Giữ nguyên các đoạn code khởi tạo bot, intents, events...)
+
+# Mày cần thay @client.event thành @bot.event
+@bot.event
+async def on_message(message):
+    # Thay client.user thành bot.user
+    if message.author == bot.user:
+        return
+
+    # Thay client.user.mentioned_in(message) thành bot.user.mentioned_in(message)
+    # Hoặc để tiện cho code commands.Bot, nên dùng bot.user:
+    if bot.user.mentioned_in(message):
+        question = message.content.replace(f'<@{bot.user.id}>', '').strip()  # Thay client.user.id thành bot.user.id
+
+        async with message.channel.typing():
+            ai_response = get_ai_response(question)
+
+        await message.reply(ai_response)
+
+    # QUAN TRỌNG: Phải gọi lệnh này để các lệnh Slash (/) và prefix (!) vẫn hoạt động
+    await bot.process_commands(message)
+
 # Bật Web Server giả và chạy Bot
 if __name__ == "__main__":
     keep_alive()
