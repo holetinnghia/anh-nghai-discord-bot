@@ -6,7 +6,7 @@ import asyncio
 import logging
 from azure.identity import ClientSecretCredential
 from azure.mgmt.compute import ComputeManagementClient
-from keep_alive import keep_alive
+from bot_alive import keep_alive
 from mcstatus import JavaServer
 import discord
 from discord import app_commands
