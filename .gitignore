@@ -111,3 +111,10 @@ secrets.yaml
 .env.*
 !.env.example
 !*.env.template
+
+# 2. Bỏ qua file model nặng (Github không chứa nổi đâu)
+*.gguf
+*.bin
+*.safetensors
+adapters/
+qwen_*/

@@ -1,16 +1,14 @@
-# 1. ĐỔI MODEL SANG QWEN (Hỗ trợ Tiếng Việt tốt nhất hiện nay cho dòng 7B)
 model: "mlx-community/Qwen2.5-7B-Instruct-4bit"
-
 train: true
 data: "data"
 
-# 2. CẤU HÌNH CHO MÁY 16GB RAM
+learning_rate: 1e-5  # Giữ nguyên mức thấp này
+iters: 200           # <--- GIẢM CÁI NÀY (Cũ là 600 -> Quá nhiều)
+
 lora_layers: 8
-batch_size: 1        # Giữ nguyên 1 để không tràn RAM
-grad_checkpoint: true # Bắt buộc bật
-iters: 600
-learning_rate: 1e-4
-steps_per_eval: 100
-save_every: 100
+batch_size: 1
+grad_checkpoint: true
+steps_per_eval: 50   # Giảm cái này xuống để nó log thường xuyên hơn
+save_every: 50
 adapter_path: "adapters"
 max_seq_length: 1024
