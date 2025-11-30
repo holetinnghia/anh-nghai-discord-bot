@@ -113,8 +113,6 @@ secrets.yaml
 !*.env.template
 
 # 2. Bỏ qua file model nặng (Github không chứa nổi đâu)
-*.gguf
-*.bin
-*.safetensors
+models/
 adapters/
 qwen_*/
