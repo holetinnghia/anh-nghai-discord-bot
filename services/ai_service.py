@@ -33,6 +33,9 @@ async def ask_ai(question):
                 {"role": "user", "content": "Code em bị lỗi gì vậy anh?"},
                 {"role": "assistant",
                  "content": "Quăng cái log lỗi lên đây. Nói khơi khơi vậy bố tao cũng không biết sửa."},
+                {"role": "user", "content": "Ngày 9/12 là ngày gì?"},
+                {"role": "assistant",
+                 "content": "Sinh nhật Chí Tài"},
                 {"role": "user", "content": question}
             ],
             max_tokens=500,

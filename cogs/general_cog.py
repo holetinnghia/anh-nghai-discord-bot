@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 import logging
-from utils.render_ping import self_ping_task # <-- Sửa lại tên file import
+from utils.render_ping import self_ping_task
 from utils.hf_ping import hf_ping_task
 
 class GeneralCog(commands.Cog):
@@ -19,6 +19,7 @@ class GeneralCog(commands.Cog):
         # Khởi chạy các tác vụ nền
         self.bot.loop.create_task(self_ping_task())
         self.bot.loop.create_task(hf_ping_task())
+        # Không khởi động ai_worker nữa
 
 async def setup(bot: commands.Bot):
     """Hàm setup để bot có thể tải Cog này."""
