@@ -9,10 +9,12 @@ class AICog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if message.author == self.bot.user:
+        # FIX CƠ CH BẢN: Dùng ID check để đảm bảo không bị lỗi object reference
+        if message.author.id == self.bot.user.id:
             return
 
         if self.bot.user.mentioned_in(message):
+            # ... (Phần Concurrency và Logic gọi AI giữ nguyên)
             if is_ai_busy():
                 await message.reply("Tao đang bận trả lời đứa khác. Hỏi sau đi.")
                 return
