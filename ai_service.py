@@ -8,15 +8,20 @@ client = OpenAI(
     api_key="sk-khong-can-thiet"
 )
 
+
 def ask_ai(question):
     print(f"--- Đang hỏi AI: {question} ---")
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            # SỬA CHỖ NÀY: Gọi đúng tên file trên server
+            model="base_model.gguf",  # <--- Thay gpt-3.5-turbo bằng cái này
+
             messages=[
+                {"role": "system", "content": "Mày là Anh Nghãi SPKT. Trả lời ngắn gọn, cục súc."},
                 {"role": "user", "content": question}
             ],
-            # Bỏ hết max_tokens, temperature để tránh lỗi param
+            # Bỏ max_tokens nếu muốn an toàn tuyệt đối, hoặc để 500 cũng được
+            max_tokens=500
         )
         return response.choices[0].message.content
 

@@ -9,3 +9,4 @@ riotwatcher
 python-dotenv
 Flask
 requests
+openai
