@@ -112,7 +112,8 @@ secrets.yaml
 !.env.example
 !*.env.template
 
-# 2. Bỏ qua file model nặng (Github không chứa nổi đâu)
+# 2. Bỏ qua file model nặng
 models/
 adapters/
 qwen_*/
+data/
