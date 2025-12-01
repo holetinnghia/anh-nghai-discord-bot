@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import logging
 from utils.ping_util import self_ping_task
-from utils.hf_ping_util import hf_ping_task
+from utils.hf_ping import hf_ping_task
 
 class GeneralCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
