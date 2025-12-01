@@ -1,29 +1,31 @@
-import requests
-import json
+from openai import OpenAI, APIStatusError
 
-# Khai báo biến cần thiết
-OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL_NAME = "gemma:2b"
+# Link Space của mày
+HF_SPACE_URL = "https://holetinnghia-anh-nghai-ai-api.hf.space/v1"
 
+client = OpenAI(
+    base_url=HF_SPACE_URL,
+    api_key="sk-khong-can-thiet"
+)
 
-def get_ai_response(prompt: str) -> str:
-    """Gửi prompt đến Ollama API và trả về câu trả lời."""
-
-    # Payload cần thiết để gọi API của Ollama
-    data = {
-        "model": MODEL_NAME,
-        "prompt": prompt,
-        "stream": False  # Chờ câu trả lời hoàn chỉnh
-    }
-
+def ask_ai(question):
+    print(f"--- Đang hỏi AI: {question} ---")
     try:
-        response = requests.post(OLLAMA_URL, json=data)
-        response.raise_for_status()  # Báo lỗi HTTP nếu có
-        result = response.json()
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "user", "content": question}
+            ],
+            # Bỏ hết max_tokens, temperature để tránh lỗi param
+        )
+        return response.choices[0].message.content
 
-        # Ollama trả về kết quả trong key 'response'
-        return result.get("response", "Lỗi: Không tìm thấy phản hồi từ mô hình.")
+    except APIStatusError as e:
+        print(f"🔥 LỖI SERVER ({e.status_code}): {e.response.text}")
+        return f"Lỗi: {e.status_code}"
+    except Exception as e:
+        print(f"❌ Lỗi lạ: {e}")
+        return "Lỗi kết nối."
 
-    except requests.exceptions.RequestException as e:
-        print(f"Lỗi kết nối với Ollama hoặc API: {e}")
-        return "Xin lỗi, server AI của tao đang bị sập rồi. Kiểm tra Ollama đi m."
+if __name__ == "__main__":
+    print(ask_ai("Xin chào, mày là ai?"))

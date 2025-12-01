@@ -1,6 +1,5 @@
 from dotenv import load_dotenv
 load_dotenv() # Tải các biến môi trường từ file .env
-
 import os
 import asyncio
 import logging
@@ -321,30 +320,38 @@ async def on_ready():
     bot.loop.create_task(self_ping())
 
 
-# Đầu file bot.py, import hàm từ file mới
-from ai_service import get_ai_response
+# 1. SỬA DÒNG IMPORT (Quan trọng)
+# Lúc nãy bên ai_service.py mình đặt tên hàm là ask_ai
+from ai_service import ask_ai
 
 
-# (Giữ nguyên các đoạn code khởi tạo bot, intents, events...)
+# ... (Các đoạn code khởi tạo bot giữ nguyên) ...
 
-# Mày cần thay @client.event thành @bot.event
 @bot.event
 async def on_message(message):
-    # Thay client.user thành bot.user
+    # Bỏ qua tin nhắn của chính con bot
     if message.author == bot.user:
         return
 
-    # Thay client.user.mentioned_in(message) thành bot.user.mentioned_in(message)
-    # Hoặc để tiện cho code commands.Bot, nên dùng bot.user:
+    # Nếu bot được tag (mention)
     if bot.user.mentioned_in(message):
-        question = message.content.replace(f'<@{bot.user.id}>', '').strip()  # Thay client.user.id thành bot.user.id
+        # Lọc bỏ cái tag @AnhNghaiBot ra khỏi câu hỏi
+        question = message.content.replace(f'<@{bot.user.id}>', '').strip()
 
-        async with message.channel.typing():
-            ai_response = get_ai_response(question)
+        # Kiểm tra nếu câu hỏi không rỗng
+        if question:
+            # Hiện dòng chữ "Bot is typing..." cho nó nguy hiểm
+            async with message.channel.typing():
+                # 2. GỌI HÀM MỚI
+                # Hàm này sẽ gọi lên Hugging Face Space để lấy câu trả lời
+                ai_response = ask_ai(question)
 
-        await message.reply(ai_response)
+            # Trả lời lại user
+            await message.reply(ai_response)
+        else:
+            await message.reply("Tag tao làm gì? Hỏi gì thì nói đi mày.")
 
-    # QUAN TRỌNG: Phải gọi lệnh này để các lệnh Slash (/) và prefix (!) vẫn hoạt động
+    # Dòng này bắt buộc phải có để các lệnh khác (như !help, !ping) vẫn chạy được
     await bot.process_commands(message)
 
 # Bật Web Server giả và chạy Bot
