@@ -329,29 +329,20 @@ from ai_service import ask_ai
 
 @bot.event
 async def on_message(message):
-    # Bỏ qua tin nhắn của chính con bot
     if message.author == bot.user:
         return
 
-    # Nếu bot được tag (mention)
     if bot.user.mentioned_in(message):
-        # Lọc bỏ cái tag @AnhNghaiBot ra khỏi câu hỏi
         question = message.content.replace(f'<@{bot.user.id}>', '').strip()
 
-        # Kiểm tra nếu câu hỏi không rỗng
         if question:
-            # Hiện dòng chữ "Bot is typing..." cho nó nguy hiểm
             async with message.channel.typing():
-                # 2. GỌI HÀM MỚI
-                # Hàm này sẽ gọi lên Hugging Face Space để lấy câu trả lời
-                ai_response = ask_ai(question)
+                # --- SỬA DÒNG NÀY ---
+                # Thêm 'await' vào trước ask_ai
+                ai_response = await ask_ai(question)
 
-            # Trả lời lại user
             await message.reply(ai_response)
-        else:
-            await message.reply("Tag tao làm gì? Hỏi gì thì nói đi mày.")
 
-    # Dòng này bắt buộc phải có để các lệnh khác (như !help, !ping) vẫn chạy được
     await bot.process_commands(message)
 
 # Bật Web Server giả và chạy Bot
