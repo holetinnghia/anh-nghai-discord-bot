@@ -1,12 +1,9 @@
 discord.py
+python-dotenv
+openai
 azure-identity
 azure-mgmt-compute
-discord.py
-python-dotenv
+riotwatcher
 mcstatus
 aiohttp
-riotwatcher
-python-dotenv
 Flask
-requests
-openai
