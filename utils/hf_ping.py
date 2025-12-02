@@ -6,7 +6,7 @@ async def hf_ping_task():
     url = "https://holetinnghia-anh-nghai-ai-api.hf.space"
     logging.info(f"Đã kích hoạt chế độ ping Hugging Face mỗi 8 tiếng vào: {url}")
 
-    await asyncio.sleep(10)
+    await asyncio.sleep(300)
 
     while True:
         try:
@@ -19,4 +19,4 @@ async def hf_ping_task():
         except aiohttp.ClientError as e:
             logging.error(f"❌ Lỗi khi ping Hugging Face AI: {e}")
         
-        await asyncio.sleep(28800)
+        await asyncio.sleep(60)
