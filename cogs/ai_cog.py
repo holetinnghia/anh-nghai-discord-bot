@@ -33,7 +33,12 @@ class AICog(commands.Cog):
                             await message.reply("Tao không nghĩ ra được câu trả lời. Hỏi câu khác đi.")
                         else:
                             # Nếu có nội dung, gửi câu trả lời của AI
-                            await message.reply(ai_response)
+                            # ... code xử lý AI ở trên ...
 
+                            # Thêm đoạn này vào trước dòng message.reply
+                            print(
+                                f"--- DEBUG AI RESPONSE ---\nType: {type(ai_response)}\nLength: {len(str(ai_response)) if ai_response else 0}\nContent: {ai_response}\n-------------------------")
+
+                            await message.reply(ai_response)
 async def setup(bot: commands.Bot):
     await bot.add_cog(AICog(bot))
