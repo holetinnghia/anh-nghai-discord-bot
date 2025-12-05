@@ -32,13 +32,20 @@ class AICog(commands.Cog):
                         if not ai_response or not ai_response.strip():
                             await message.reply("Tao không nghĩ ra được câu trả lời. Hỏi câu khác đi.")
                         else:
-                            # Nếu có nội dung, gửi câu trả lời của AI
-                            # ... code xử lý AI ở trên ...
+                            # --- Bắt đầu đoạn code mới ---
+                            # Giới hạn an toàn là 1900 ký tự (để chừa chỗ cho format của Discord)
+                            if len(ai_response) <= 1900:
+                                await message.reply(ai_response)
+                            else:
+                                # Cắt chuỗi thành từng khúc 1900 ký tự
+                                chunks = [ai_response[i:i + 1900] for i in range(0, len(ai_response), 1900)]
 
-                            # Thêm đoạn này vào trước dòng message.reply
-                            print(
-                                f"--- DEBUG AI RESPONSE ---\nType: {type(ai_response)}\nLength: {len(str(ai_response)) if ai_response else 0}\nContent: {ai_response}\n-------------------------")
+                                # Reply khúc đầu tiên để tag user
+                                await message.reply(chunks[0])
 
-                            await message.reply(ai_response)
+                                # Các khúc sau thì gửi tiếp vào channel (không reply để đỡ spam noti)
+                                for chunk in chunks[1:]:
+                                    await message.channel.send(chunk)
+                            # --- Kết thúc đoạn code mới ---
 async def setup(bot: commands.Bot):
     await bot.add_cog(AICog(bot))
