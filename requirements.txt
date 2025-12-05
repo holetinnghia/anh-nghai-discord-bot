@@ -7,3 +7,5 @@ riotwatcher
 mcstatus
 aiohttp
 Flask
+google-generativeai
+python-dotenv
