@@ -7,15 +7,12 @@ log.setLevel(logging.ERROR)
 
 app = Flask('')
 
-
 @app.route('/')
 def home():
-    return "I'm alive! Bot is running."
-
+    return "Anh Nghãi SPKT đang quậy căng vcl"
 
 def run():
     app.run(host='0.0.0.0', port=8080)
-
 
 def keep_alive():
     t = Thread(target=run)
