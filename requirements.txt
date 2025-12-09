@@ -8,4 +8,5 @@ mcstatus
 aiohttp
 Flask
 google-generativeai
-python-dotenv
+yt-dlp
+pynacl
