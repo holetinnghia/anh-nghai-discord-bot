@@ -117,3 +117,5 @@ models/
 adapters/
 qwen_*/
 data/
+
+cookies.txt
