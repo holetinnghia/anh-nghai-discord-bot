@@ -3,7 +3,7 @@ import aiohttp
 import logging
 
 async def self_ping_task():
-    url = "https://anh-nghai-bot.onrender.com"
+    url = "https://anh-nghai-discord-bot.onrender.com"
     logging.info(f"Đã kích hoạt chế độ tự ping mỗi 5 phút vào: {url}")
     while True:
         await asyncio.sleep(300)  # 5 phút
