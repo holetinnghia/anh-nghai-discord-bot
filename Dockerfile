@@ -20,4 +20,4 @@ COPY . .
 # --- QUAN TRỌNG ---
 # Thay chữ 'main.py' bằng tên file chạy bot chính của bro
 # Ví dụ: bot.py, run.py, v.v.
-CMD ["python", "main.py"]
+CMD ["python", "bot.py"]
